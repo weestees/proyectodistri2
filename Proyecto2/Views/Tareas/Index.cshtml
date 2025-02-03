@@ -1,0 +1,32 @@
+﻿@model IEnumerable<Proyecto2.Models.Tarea>
+
+@{
+    ViewBag.Title = "Tareas";
+}
+
+<h2>Tareas</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tarea in Model)
+        {
+            <tr>
+                <td>@tarea.Nombre</td>
+                <td>@tarea.Descripcion</td>
+                <td>@tarea.Estado</td>
+                <td>
+                    <a href="@Url.Action("EditarEstado", "Tareas", new { id = tarea.Id })" class="btn btn-primary">Editar
+                        Estado</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
