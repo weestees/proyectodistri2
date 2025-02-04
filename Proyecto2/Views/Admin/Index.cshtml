@@ -28,7 +28,7 @@
                 <td>@usuario.Rol</td>
                 <td>
                     <a href="@Url.Action("EditarUsuario", "Admin", new { id = usuario.Id })"
-                        class="btn btn-primary">Editar</a>
+                       class="btn btn-primary">Editar</a>
                     <button class="btn btn-danger" onclick="confirmDelete(@usuario.Id)">Eliminar</button>
                 </td>
             </tr>
@@ -41,7 +41,7 @@
 
 <!-- Modal de confirmación -->
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel"
-    aria-hidden="true">
+     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -62,14 +62,16 @@
 </div>
 
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/jqueryval")
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.19.3/jquery.validate.min.js"></script>
-    <script src="https://ajax.aspnetcdn.com/ajax/mvc/5.2.3/jquery.validate.unobtrusive.min.js"></script>
+
     <script>
         function confirmDelete(userId) {
             $('#confirmDeleteButton').attr('onclick', `deleteUser(${userId})`);
-            $('#confirmDeleteModal').modal('show');
+            $('#confirmDeleteModal').modal('show'); // Aquí se produce el error si Bootstrap no está cargado
         }
 
         function deleteUser(userId) {
@@ -93,5 +95,8 @@
             });
         }
     </script>
+
     @Html.AntiForgeryToken()
+}
+
 }

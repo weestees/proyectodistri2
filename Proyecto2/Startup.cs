@@ -3,6 +3,8 @@ using Microsoft.Owin.Security.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using Owin;
 using System.Text;
+using System.Web.Http;
+using Microsoft.Owin.Security.DataHandler.Encoder;
 
 [assembly: OwinStartup(typeof(Proyecto2.Startup))]
 
@@ -12,27 +14,26 @@ namespace Proyecto2
     {
         public void Configuration(IAppBuilder app)
         {
-            var issuer = "tu_issuer";
-            var audience = "tu_audience";
+            var issuer = "yourdomain.com";
+            var audience = "yourdomain.com";
+            var secret = Encoding.UTF8.GetBytes("ClaveSuperSecretadelPry2");
 
-            // Clave secreta en texto plano (32 caracteres)
-            var secret = Encoding.UTF8.GetBytes("ClaveSuperSecreta1234567890!@#$%^");
-
-            app.Map("/api/autenticacion/login", loginApp =>
+            app.UseJwtBearerAuthentication(new JwtBearerAuthenticationOptions
             {
-                loginApp.UseJwtBearerAuthentication(new JwtBearerAuthenticationOptions
+                TokenValidationParameters = new TokenValidationParameters
                 {
-                    TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = issuer,
-                        ValidAudience = audience,
-                        IssuerSigningKey = new SymmetricSecurityKey(secret)
-                    }
-                });
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(secret)
+                }
             });
+
+            HttpConfiguration config = new HttpConfiguration();
+            WebApiConfig.Register(config);
+            app.UseWebApi(config);
         }
     }
 }

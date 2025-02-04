@@ -5,3 +5,33 @@
 <h2>User Dashboard</h2>
 
 <p>Bienvenido, Miembro.</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Tarea</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tarea in Model.Tareas)
+        {
+            <tr>
+                <td>@tarea.Nombre</td>
+                <td>@tarea.Descripcion</td>
+                <td>@tarea.Estado</td>
+                <td>
+                    <form method="post" action="/Miembro/MarcarCompletado">
+                        <input type="hidden" name="tareaId" value="@tarea.Id" />
+                        <input type="checkbox" name="completado" value="true" @(tarea.Estado == "Completado" ? "checked" :
+                        "") />
+                        <button type="submit">Actualizar</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+                       

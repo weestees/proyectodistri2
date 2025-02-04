@@ -1,87 +1,94 @@
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
 using System.Web.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using Proyecto2.DAL;
 using Proyecto2.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System;
+using System.Web;
 
 namespace Proyecto2.Controllers
 {
+    [RoutePrefix("api/autenticacion")]
     public class AuthController : Controller
     {
-        private GestorProyecto db = new GestorProyecto();
-        private readonly string _jwtKey = "ClaveSuperSecreta1234567890!@#$%^"; // 32 caracteres
-
-        [HttpPost]
-        public ActionResult Login(LoginViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var user = AuthenticateUser(model.Email, model.Password);
-                if (user != null)
-                {
-                    var token = GenerateToken(user);
-                    // Autenticación exitosa, redirigir según el rol del usuario
-                    if (user.Rol == "Administrador")
-                    {
-                        return RedirectToAction("Index", "Admin");
-                    }
-                    else if (user.Rol == "Miembro")
-                    {
-                        return RedirectToAction("Index", "User");
-                    }
-                }
-                ModelState.AddModelError("", "Email o contraseña incorrectos.");
-            }
-            return View(model);
-        }
-
         [HttpGet]
         public ActionResult Login()
         {
             return View();
         }
 
-        private string GenerateToken(Usuario user)
+        [HttpPost]
+        [Route("login")]
+        public ActionResult Login(LoginViewModel model)
         {
-            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
-            var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+            if (ModelState.IsValid)
+            {
+                var user = AuthenticateUser(model);
 
-            var tokeOptions = new JwtSecurityToken(
-                issuer: "tu_issuer",
-                audience: "tu_audience",
-                claims: new List<Claim>
+                if (user != null)
                 {
-                        new Claim(ClaimTypes.Name, user.Nombre),
-                        new Claim(ClaimTypes.Role, user.Rol)
-                },
-                expires: DateTime.Now.AddMinutes(30),
-                signingCredentials: signinCredentials
-            );
+                    var tokenString = GenerateJWT(user);
+                    HttpContext.Response.Cookies.Add(new HttpCookie("AuthToken", tokenString));
 
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
-            return tokenString;
+                    if (user.Role == "Admin")
+                    {
+                        return RedirectToAction("Index", "Admin");
+                    }
+                    else if (user.Role == "Miembro")
+                    {
+                        return RedirectToAction("Index", "Miembro");
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Nombre de usuario o contraseña incorrectos.");
+                }
+            }
+
+            return View(model);
         }
 
-        private Usuario AuthenticateUser(string email, string password)
+        private User AuthenticateUser(LoginViewModel model)
         {
-            var user = db.Usuarios.FirstOrDefault(u => u.Email == email);
-            if (user != null && VerifyPassword(password, user.Password))
+            if (model.Email == "admin@example.com" && model.Password == "password")
             {
-                return user;
+                return new User { Email = model.Email, Role = "Admin" };
             }
+            else if (model.Email == "miembro@example.com" && model.Password == "password")
+            {
+                return new User { Email = model.Email, Role = "Miembro" };
+            }
+
             return null;
         }
 
-        private bool VerifyPassword(string enteredPassword, string storedPassword)
+        private string GenerateJWT(User user)
         {
-            // Implementa la lógica de verificación de contraseña aquí
-            // Por ejemplo, si las contraseñas están encriptadas, desencripta y compara
-            return enteredPassword == storedPassword; // Cambia esto según sea necesario
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("YourSecretKeyHere"));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                new Claim("role", user.Role),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: "yourdomain.com",
+                audience: "yourdomain.com",
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(30),
+                signingCredentials: credentials);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
+    }
+
+    public class User
+    {
+        public string Email { get; set; }
+        public string Role { get; set; }
     }
 }

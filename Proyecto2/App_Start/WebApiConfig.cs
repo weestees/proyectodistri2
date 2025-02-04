@@ -15,12 +15,6 @@ namespace Proyecto2
             config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute(
-                name: "LoginApi",
-                routeTemplate: "autenticacion/login",
-                defaults: new { controller = "AuthMvc", action = "Login" }
-            );
-
-            config.Routes.MapHttpRoute(
                 name: "DefaultApi",
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
