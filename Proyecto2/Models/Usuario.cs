@@ -10,5 +10,8 @@ namespace Proyecto2.Models
         public string Email { get; set; }
         public string Password { get; set; }
         public string Rol { get; set; }
+
+        // Relación muchos a muchos con Tarea a través de UsuarioTarea
+        public virtual ICollection<UsuarioTarea> UsuarioTareas { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Proyecto2.Models;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -23,10 +24,7 @@ namespace Proyecto2.Models
         [Required]
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
-        // Relación con Usuario
-        [ForeignKey("Usuario")]
-        public int UsuarioId { get; set; }
-
-        public virtual Usuario Usuario { get; set; }
+        // Relación muchos a muchos con Usuario a través de UsuarioTarea
+        public virtual ICollection<UsuarioTarea> UsuarioTareas { get; set; }
     }
 }

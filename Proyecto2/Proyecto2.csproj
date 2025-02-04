@@ -250,6 +250,7 @@
     <Compile Include="Models\LoginViewModel.cs" />
     <Compile Include="Models\Tarea.cs" />
     <Compile Include="Models\Usuario.cs" />
+    <Compile Include="Models\UsuarioTarea.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>

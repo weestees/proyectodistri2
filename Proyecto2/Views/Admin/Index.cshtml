@@ -62,6 +62,10 @@
 </div>
 
 @section Scripts {
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.19.3/jquery.validate.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/mvc/5.2.3/jquery.validate.unobtrusive.min.js"></script>
     <script>
         function confirmDelete(userId) {
             $('#confirmDeleteButton').attr('onclick', `deleteUser(${userId})`);
@@ -77,7 +81,11 @@
                     __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                 },
                 success: function (result) {
-                    location.reload();
+                    if (result.success) {
+                        location.reload();
+                    } else {
+                        alert(result.message || 'Error al eliminar el usuario.');
+                    }
                 },
                 error: function (xhr, status, error) {
                     alert('Error al eliminar el usuario.');
