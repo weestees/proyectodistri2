@@ -321,6 +321,7 @@
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MiembroController.cs" />
+    <Compile Include="Controllers\TareasApiController.cs" />
     <Compile Include="Controllers\TareasController.cs" />
     <Compile Include="Controllers\TareasMvcController.cs" />
     <Compile Include="Controllers\UsuariosController.cs" />
