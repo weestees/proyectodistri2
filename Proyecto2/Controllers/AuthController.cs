@@ -1,94 +1,85 @@
-using System.Web.Mvc;
-using Proyecto2.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using System;
-using System.Web;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+using Newtonsoft.Json;
+using Proyecto2.Models;
 
 namespace Proyecto2.Controllers
 {
-    [RoutePrefix("api/autenticacion")]
     public class AuthController : Controller
     {
-        [HttpGet]
+        // Ajusta la URL de la API (el puerto es 44367)
+        private static readonly string ApiUrl = "https://localhost:44367/api/autenticacion/login";
+
+        // GET: Auth/Login
         public ActionResult Login()
         {
             return View();
         }
 
+        // POST: Auth/Login
         [HttpPost]
-        [Route("login")]
-        public ActionResult Login(LoginViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Login(LoginViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return View(model);
+
+            using (var client = new HttpClient())
             {
-                var user = AuthenticateUser(model);
+                var jsonContent = JsonConvert.SerializeObject(model);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                if (user != null)
+                // Llamada a la API para validar las credenciales y obtener el token
+                HttpResponseMessage response = await client.PostAsync(ApiUrl, content);
+                if (response.IsSuccessStatusCode)
                 {
-                    var tokenString = GenerateJWT(user);
-                    HttpContext.Response.Cookies.Add(new HttpCookie("AuthToken", tokenString));
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    // Se deserializa la respuesta en un objeto LoginResponse
+                    var loginResponse = JsonConvert.DeserializeObject<LoginResponse>(responseData);
+                    if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.Token))
+                    {
+                        // Decodificar el token JWT para obtener el rol
+                        var handler = new JwtSecurityTokenHandler();
+                        var jwtToken = handler.ReadToken(loginResponse.Token) as JwtSecurityToken;
+                        string role = jwtToken?.Claims.FirstOrDefault(c => c.Type == "role")?.Value;
 
-                    if (user.Role == "Admin")
-                    {
-                        return RedirectToAction("Index", "Admin");
-                    }
-                    else if (user.Role == "Miembro")
-                    {
-                        return RedirectToAction("Index", "Miembro");
+                        // Se almacena el token y el rol en la sesión (opcional)
+                        Session["Token"] = loginResponse.Token;
+                        Session["Role"] = role;
+
+                        // Redirigir según el rol obtenido
+                        if (role == "Administrador")
+                        {
+                            return RedirectToAction("Index", "Admin");
+                        }
+                        else if (role == "Miembro")
+                        {
+                            return RedirectToAction("Index", "Miembro");
+                        }
+                        else
+                        {
+                            // Si el rol no coincide con ninguno, se regresa al login
+                            ModelState.AddModelError("", "Rol no reconocido.");
+                            return View(model);
+                        }
                     }
                 }
-                else
-                {
-                    ModelState.AddModelError("", "Nombre de usuario o contraseÃ±a incorrectos.");
-                }
-            }
 
-            return View(model);
+                ModelState.AddModelError("", "Credenciales incorrectas.");
+                return View(model);
+            }
         }
 
-        private User AuthenticateUser(LoginViewModel model)
+        // Acción para cerrar sesión
+        public ActionResult Logout()
         {
-            if (model.Email == "admin@example.com" && model.Password == "password")
-            {
-                return new User { Email = model.Email, Role = "Admin" };
-            }
-            else if (model.Email == "miembro@example.com" && model.Password == "password")
-            {
-                return new User { Email = model.Email, Role = "Miembro" };
-            }
-
-            return null;
+            Session.Clear();
+            return RedirectToAction("Login");
         }
-
-        private string GenerateJWT(User user)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("YourSecretKeyHere"));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim("role", user.Role),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            var token = new JwtSecurityToken(
-                issuer: "yourdomain.com",
-                audience: "yourdomain.com",
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
-                signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-    }
-
-    public class User
-    {
-        public string Email { get; set; }
-        public string Role { get; set; }
     }
 }
