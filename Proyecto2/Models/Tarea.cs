@@ -22,9 +22,7 @@ namespace Proyecto2.Models
         public string Estado { get; set; } // "Pendiente", "En Progreso", "Completada"
 
         [Required]
-        public DateTime FechaCreacion { get; set; } = DateTime.Now;
-
-        public string AsignadoA { get; set; }
+        public DateTime FechaCreacion { get; set; }
 
         // Relación muchos a muchos con Usuario a través de UsuarioTarea
         public virtual ICollection<UsuarioTarea> UsuarioTareas { get; set; }

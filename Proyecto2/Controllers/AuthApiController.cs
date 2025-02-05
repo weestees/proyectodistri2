@@ -85,6 +85,18 @@ namespace Proyecto2.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        [HttpGet]
+        [Route("redirect")]
+        public IHttpActionResult RedirectUser(string returnUrl)
+        {
+            if (string.IsNullOrEmpty(returnUrl))
+            {
+                return BadRequest("ReturnUrl no puede estar vacío.");
+            }
+
+            return Redirect(returnUrl);
+        }
     }
 
     public class User

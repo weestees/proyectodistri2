@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data.Entity.Infrastructure;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -11,9 +8,9 @@ using System.Web.Http.Description;
 using Proyecto2.DAL;
 using Proyecto2.Models;
 
-namespace Proyecto2.Controllers
+namespace Proyecto2.Controllers.Api
 {
-    public class UsuariosController : ApiController
+    public class UsuariosApiController : ApiController
     {
         private GestorProyecto db = new GestorProyecto();
 

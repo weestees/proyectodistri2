@@ -1,37 +1,31 @@
+@model Proyecto2.Models.MiembroViewModel
+
 @{
-    ViewBag.Title = "User Dashboard";
+    ViewBag.Title = "Tareas Asignadas";
 }
 
-<h2>User Dashboard</h2>
+<h2>Tareas Asignadas</h2>
 
-<p>Bienvenido, Miembro.</p>
-
-<table>
+<table class="table">
     <thead>
         <tr>
-            <th>Tarea</th>
+            <th>ID</th>
+            <th>Título</th>
             <th>Descripción</th>
             <th>Estado</th>
-            <th>Acción</th>
+            <th>Fecha de Creación</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var tarea in Model.Tareas)
         {
             <tr>
-                <td>@tarea.Nombre</td>
+                <td>@tarea.Id</td>
+                <td>@tarea.Titulo</td>
                 <td>@tarea.Descripcion</td>
                 <td>@tarea.Estado</td>
-                <td>
-                    <form method="post" action="/Miembro/MarcarCompletado">
-                        <input type="hidden" name="tareaId" value="@tarea.Id" />
-                        <input type="checkbox" name="completado" value="true" @(tarea.Estado == "Completado" ? "checked" :
-                        "") />
-                        <button type="submit">Actualizar</button>
-                    </form>
-                </td>
+                <td>@tarea.FechaCreacion</td>
             </tr>
         }
     </tbody>
 </table>
-                       

@@ -323,11 +323,13 @@
     <Compile Include="Controllers\MiembroController.cs" />
     <Compile Include="Controllers\TareasController.cs" />
     <Compile Include="Controllers\UsuariosController.cs" />
+    <Compile Include="Controllers\UsuariosMvcController.cs" />
     <Compile Include="Controllers\UsuarioTareasController.cs" />
     <Compile Include="DAL\GestorProyecto.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\AdminViewModel.cs" />
     <Compile Include="Models\LoginResponse.cs" />
     <Compile Include="Models\LoginViewModel.cs" />
     <Compile Include="Models\MiembroViewModel.cs" />
@@ -407,7 +409,6 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Usuarios\Delete.cshtml" />
     <Content Include="Views\Tareas\Create.cshtml" />
     <Content Include="Views\Tareas\Delete.cshtml" />
     <Content Include="Views\Tareas\Details.cshtml" />
@@ -415,13 +416,10 @@
     <Content Include="Views\Tareas\Index.cshtml" />
     <Content Include="Views\Auth\Login.cshtml" />
     <Content Include="Views\Shared\_ValidationScriptsPartial.cshtml" />
-    <Content Include="Views\Admin\CrearUsuario.cshtml" />
-    <Content Include="Views\Admin\EditarUsuario.cshtml" />
-    <Content Include="Views\Admin\Usuarios.cshtml" />
     <Content Include="Views\Tareas\EditarEstado.cshtml" />
     <Content Include="Views\Admin\Index.cshtml" />
-    <Content Include="Views\Usuarios\Crear.cshtml" />
-    <Content Include="Views\Usuarios\Editar.cshtml" />
+    <Content Include="Views\UsuariosMvc\Crear.cshtml" />
+    <Content Include="Views\UsuariosMvc\Editar.cshtml" />
     <Content Include="Views\Miembro\Index.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
   </ItemGroup>

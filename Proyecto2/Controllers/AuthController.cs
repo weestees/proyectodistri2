@@ -2,9 +2,12 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
+using System.Web.Security;
 using Newtonsoft.Json;
 using Proyecto2.Models;
 
@@ -18,13 +21,15 @@ namespace Proyecto2.Controllers
         // GET: Auth/Login
         public ActionResult Login()
         {
+            FormsAuthentication.SignOut();
+            Session.Clear();
             return View();
         }
 
         // POST: Auth/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Login(LoginViewModel model)
+        public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
         {
             if (!ModelState.IsValid)
                 return View(model);
@@ -39,34 +44,62 @@ namespace Proyecto2.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     var responseData = await response.Content.ReadAsStringAsync();
-                    // Se deserializa la respuesta en un objeto LoginResponse
-                    var loginResponse = JsonConvert.DeserializeObject<LoginResponse>(responseData);
-                    if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.Token))
+
+                    // Verificar si la respuesta es JSON
+                    if (response.Content.Headers.ContentType.MediaType == "application/json")
                     {
-                        // Decodificar el token JWT para obtener el rol
-                        var handler = new JwtSecurityTokenHandler();
-                        var jwtToken = handler.ReadToken(loginResponse.Token) as JwtSecurityToken;
-                        string role = jwtToken?.Claims.FirstOrDefault(c => c.Type == "role")?.Value;
+                        // Se deserializa la respuesta en un objeto LoginResponse
+                        var loginResponse = JsonConvert.DeserializeObject<LoginResponse>(responseData);
+                        if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.Token))
+                        {
+                            // Decodificar el token JWT para obtener el rol
+                            var handler = new JwtSecurityTokenHandler();
+                            var jwtToken = handler.ReadToken(loginResponse.Token) as JwtSecurityToken;
+                            string role = jwtToken?.Claims.FirstOrDefault(c => c.Type == "role")?.Value;
 
-                        // Se almacena el token y el rol en la sesi髇 (opcional)
-                        Session["Token"] = loginResponse.Token;
-                        Session["Role"] = role;
+                            // Crear un ticket de autenticaci贸n de formularios que incluya el rol en los UserData
+                            var authTicket = new FormsAuthenticationTicket(
+                                1,                                // Versi贸n
+                                model.Email,                      // Nombre de usuario
+                                DateTime.Now,                     // Fecha de emisi贸n
+                                DateTime.Now.AddMinutes(30),      // Fecha de expiraci贸n
+                                false,                            // Persistencia (recordar o no)
+                                role                              // UserData: en este caso, el rol
+                            );
 
-                        // Redirigir seg鷑 el rol obtenido
-                        if (role == "Administrador")
-                        {
-                            return RedirectToAction("Index", "Admin");
+                            // Encriptar el ticket y crear la cookie
+                            string encryptedTicket = FormsAuthentication.Encrypt(authTicket);
+                            var authCookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket)
+                            {
+                                HttpOnly = true,
+                                Expires = authTicket.Expiration
+                            };
+                            Response.Cookies.Add(authCookie);
+
+                            // Tambi茅n puedes almacenar el token en sesi贸n si lo necesitas
+                            Session["Token"] = loginResponse.Token;
+                            Session["Role"] = role;
+
+                            // Redirigir seg煤n el rol obtenido
+                            if (role.Equals("Administrador", StringComparison.OrdinalIgnoreCase))
+                            {
+                                return RedirectToAction("Index", "Admin");
+                            }
+                            else if (role.Equals("Miembro", StringComparison.OrdinalIgnoreCase))
+                            {
+                                return RedirectToAction("Index", "Miembro");
+                            }
+                            else
+                            {
+                                ModelState.AddModelError("", "Rol no reconocido.");
+                                return View(model);
+                            }
                         }
-                        else if (role == "Miembro")
-                        {
-                            return RedirectToAction("Index", "Miembro");
-                        }
-                        else
-                        {
-                            // Si el rol no coincide con ninguno, se regresa al login
-                            ModelState.AddModelError("", "Rol no reconocido.");
-                            return View(model);
-                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "Respuesta inesperada del servidor.");
+                        return View(model);
                     }
                 }
 
@@ -75,9 +108,10 @@ namespace Proyecto2.Controllers
             }
         }
 
-        // Acci髇 para cerrar sesi髇
+        // Acci贸n para cerrar sesi贸n
         public ActionResult Logout()
         {
+            FormsAuthentication.SignOut();
             Session.Clear();
             return RedirectToAction("Login");
         }
