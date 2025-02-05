@@ -322,6 +322,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MiembroController.cs" />
     <Compile Include="Controllers\TareasController.cs" />
+    <Compile Include="Controllers\TareasMvcController.cs" />
     <Compile Include="Controllers\UsuariosController.cs" />
     <Compile Include="Controllers\UsuariosMvcController.cs" />
     <Compile Include="Controllers\UsuarioTareasController.cs" />
@@ -409,19 +410,20 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Tareas\Create.cshtml" />
-    <Content Include="Views\Tareas\Delete.cshtml" />
-    <Content Include="Views\Tareas\Details.cshtml" />
-    <Content Include="Views\Tareas\Edit.cshtml" />
-    <Content Include="Views\Tareas\Index.cshtml" />
+    <Content Include="Views\TareasMvc\Crear.cshtml" />
+    <Content Include="Views\TareasMvc\Eliminar.cshtml" />
+    <Content Include="Views\TareasMvc\Details.cshtml" />
+    <Content Include="Views\TareasMvc\Editar.cshtml" />
+    <Content Include="Views\TareasMvc\Index.cshtml" />
     <Content Include="Views\Auth\Login.cshtml" />
     <Content Include="Views\Shared\_ValidationScriptsPartial.cshtml" />
-    <Content Include="Views\Tareas\EditarEstado.cshtml" />
+    <Content Include="Views\TareasMvc\EditarEstado.cshtml" />
     <Content Include="Views\Admin\Index.cshtml" />
     <Content Include="Views\UsuariosMvc\Crear.cshtml" />
     <Content Include="Views\UsuariosMvc\Editar.cshtml" />
     <Content Include="Views\Miembro\Index.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\UsuariosMvc\Eliminar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

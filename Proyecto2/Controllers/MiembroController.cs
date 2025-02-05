@@ -19,7 +19,7 @@ namespace Proyecto2.Controllers
                 return HttpNotFound();
             }
 
-            var tareasAsignadas = db.UsuarioTareas
+            var tareasAsignadas = db.Usuarios_Tareas
                 .Where(ut => ut.UsuarioId == usuario.Id)
                 .Select(ut => ut.Tarea)
                 .ToList();

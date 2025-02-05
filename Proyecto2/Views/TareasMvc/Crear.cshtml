@@ -6,7 +6,16 @@
 
 <h2>Crear Tarea</h2>
 
-@using (Html.BeginForm("Create", "Tareas", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@using (Html.BeginForm("Crear", "TareasMvc", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
 {
     @Html.AntiForgeryToken()
     <div class="form-group">
@@ -26,25 +35,32 @@
     </div>
 
     <div class="form-group">
-        @Html.Label("Usuarios", htmlAttributes: new { @class = "control-label col-md-2" })
+        @Html.LabelFor(model => model.FechaCreacion, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.ListBox("usuarioIds", (MultiSelectList)ViewBag.Usuarios, new { @class = "form-control" })
-            @Html.ValidationMessage("usuarioIds", "", new { @class = "text-danger" })
+            @Html.TextBoxFor(model => model.FechaCreacion, new { @class = "form-control", @readonly = "readonly" })
+            @Html.ValidationMessageFor(model => model.FechaCreacion, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Estado, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(model => model.Estado, new { @class = "form-control", @readonly = "readonly" })
+            @Html.ValidationMessageFor(model => model.Estado, "", new { @class = "text-danger" })
         </div>
     </div>
 
     <div class="form-group">
         <div class="col-md-offset-2 col-md-10">
             <input type="submit" value="Crear" class="btn btn-primary" />
+            <a href="@Url.Action("Index", "Admin")" class="btn btn-secondary">Volver</a>
         </div>
     </div>
 }
-
-<div>
-    @Html.ActionLink("Back to List", "Index")
-</div>
 
 @section Scripts {
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/jqueryval")
 }
+
+                                                          

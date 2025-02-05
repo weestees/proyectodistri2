@@ -20,14 +20,14 @@ namespace Proyecto2.Controllers
         // GET: api/UsuarioTareas
         public IQueryable<UsuarioTarea> GetUsuarioTareas()
         {
-            return db.UsuarioTareas;
+            return db.Usuarios_Tareas;
         }
 
         // GET: api/UsuarioTareas/5
         [ResponseType(typeof(UsuarioTarea))]
         public IHttpActionResult GetUsuarioTarea(int id)
         {
-            UsuarioTarea usuarioTarea = db.UsuarioTareas.Find(id);
+            UsuarioTarea usuarioTarea = db.Usuarios_Tareas.Find(id);
             if (usuarioTarea == null)
             {
                 return NotFound();
@@ -80,7 +80,7 @@ namespace Proyecto2.Controllers
                 return BadRequest(ModelState);
             }
 
-            db.UsuarioTareas.Add(usuarioTarea);
+            db.Usuarios_Tareas.Add(usuarioTarea);
 
             try
             {
@@ -105,13 +105,13 @@ namespace Proyecto2.Controllers
         [ResponseType(typeof(UsuarioTarea))]
         public IHttpActionResult DeleteUsuarioTarea(int id)
         {
-            UsuarioTarea usuarioTarea = db.UsuarioTareas.Find(id);
+            UsuarioTarea usuarioTarea = db.Usuarios_Tareas.Find(id);
             if (usuarioTarea == null)
             {
                 return NotFound();
             }
 
-            db.UsuarioTareas.Remove(usuarioTarea);
+            db.Usuarios_Tareas.Remove(usuarioTarea);
             db.SaveChanges();
 
             return Ok(usuarioTarea);
@@ -128,7 +128,7 @@ namespace Proyecto2.Controllers
 
         private bool UsuarioTareaExists(int id)
         {
-            return db.UsuarioTareas.Count(e => e.UsuarioId == id) > 0;
+            return db.Usuarios_Tareas.Count(e => e.UsuarioId == id) > 0;
         }
     }
 }
