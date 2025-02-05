@@ -66,12 +66,14 @@ namespace Proyecto2.Controllers
             {
                 return HttpNotFound();
             }
+
+            ViewBag.Usuarios = new MultiSelectList(_context.Usuarios.Where(u => u.Rol == "Miembro").ToList(), "Id", "Nombre");
             return View(tarea);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Asignar(int id, bool asignarATodos)
+        public ActionResult Asignar(int id, bool asignarATodos, int[] usuarioIds)
         {
             var tarea = _context.Tareas.Find(id);
             if (tarea == null)
@@ -79,27 +81,35 @@ namespace Proyecto2.Controllers
                 return HttpNotFound();
             }
 
-            if (asignarATodos)
+            try
             {
-                try
+                if (asignarATodos)
                 {
                     var usuarios = _context.Usuarios.Where(u => u.Rol == "Miembro").ToList();
                     foreach (var usuario in usuarios)
                     {
                         _context.Usuarios_Tareas.Add(new UsuarioTarea { TareaId = tarea.Id, UsuarioId = usuario.Id });
                     }
-                    _context.SaveChanges();
-
-                    TempData["Message"] = "Tarea asignada a todos los usuarios exitosamente.";
-                    return RedirectToAction("Index", "Admin");
                 }
-                catch (Exception ex)
+                else if (usuarioIds != null)
                 {
-                    ViewBag.Error = $"Error al asignar la tarea: {ex.Message} {(ex.InnerException?.Message ?? "")}";
-                    TempData["Error"] = ViewBag.Error;
+                    foreach (var usuarioId in usuarioIds)
+                    {
+                        _context.Usuarios_Tareas.Add(new UsuarioTarea { TareaId = tarea.Id, UsuarioId = usuarioId });
+                    }
                 }
+
+                _context.SaveChanges();
+                TempData["Message"] = "Tarea asignada exitosamente.";
+                return RedirectToAction("Index", "Admin");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = $"Error al asignar la tarea: {ex.Message} {(ex.InnerException?.Message ?? "")}";
+                TempData["Error"] = ViewBag.Error;
             }
 
+            ViewBag.Usuarios = new MultiSelectList(_context.Usuarios.Where(u => u.Rol == "Miembro").ToList(), "Id", "Nombre");
             return View(tarea);
         }
     }

@@ -35,9 +35,58 @@
 
     <div class="form-group">
         <div class="col-md-offset-2 col-md-10">
-            <input type="hidden" name="asignarATodos" value="true" />
-            <input type="submit" value="Asignar a todos los usuarios" class="btn btn-primary" />
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" id="asignarUsuarios" /> Asignar a usuarios específicos
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div id="usuariosList" class="form-group" style="display: none;">
+        <div class="col-md-offset-2 col-md-10">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Seleccionar</th>
+                        <th>Nombre</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var usuario in ViewBag.Usuarios)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="usuarioIds" value="@usuario.Value" />
+                            </td>
+                            <td>@usuario.Text</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="hidden" name="asignarATodos" value="true" id="asignarATodos" />
+            <input type="submit" value="Asignar a todos los usuarios" class="btn btn-primary" id="asignarTodosBtn" />
+            <input type="submit" value="Asignar a usuarios seleccionados" class="btn btn-primary" id="asignarUsuariosBtn" style="display: none;" />
             <a href="@Url.Action("Index", "Admin")" class="btn btn-secondary">Volver</a>
         </div>
     </div>
 }
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jquery")
+    <script>
+        document.getElementById('asignarUsuarios').addEventListener('change', function () {
+            var isChecked = this.checked;
+            document.getElementById('usuariosList').style.display = isChecked ? 'block' : 'none';
+            document.getElementById('asignarTodosBtn').style.display = isChecked ? 'none' : 'inline-block';
+            document.getElementById('asignarUsuariosBtn').style.display = isChecked ? 'inline-block' : 'none';
+            document.getElementById('asignarATodos').value = isChecked ? 'false' : 'true';
+        });
+    </script>
+}
+
