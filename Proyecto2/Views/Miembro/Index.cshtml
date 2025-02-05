@@ -23,7 +23,11 @@
                 <td>@tarea.Id</td>
                 <td>@tarea.Titulo</td>
                 <td>@tarea.Descripcion</td>
-                <td>@tarea.Estado</td>
+                <td>
+                    <span style="color:@(tarea.Estado == "Pendiente" ? "red" : "green")">
+                        @tarea.Estado
+                    </span>
+                </td>
                 <td>@tarea.FechaCreacion</td>
             </tr>
         }

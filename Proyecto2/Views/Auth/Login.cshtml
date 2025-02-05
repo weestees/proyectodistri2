@@ -1,12 +1,12 @@
 @model Proyecto2.Models.LoginViewModel
 
 @{
-    ViewBag.Title = "Iniciar sesi髇";
+    ViewBag.Title = "Iniciar sesi贸n";
     // Si viene un ReturnUrl en la query string, lo ponemos en ViewBag
-    var returnUrl = Request.QueryString["ReturnUrl"] ?? "";
+    var returnUrl = Request.Params["ReturnUrl"] ?? "";
 }
 
-<h2>Iniciar sesi髇</h2>
+<h2>Iniciar sesi贸n</h2>
 
 @using (Html.BeginForm("Login", "Auth", new { returnUrl = returnUrl }, FormMethod.Post))
 {
@@ -14,7 +14,7 @@
     @Html.Hidden("returnUrl", returnUrl)
 
     <div class="form-horizontal">
-        <h4>Inicia sesi髇</h4>
+        <h4>Inicia sesi贸n</h4>
         <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
@@ -36,7 +36,7 @@
 
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <button type="submit" class="btn btn-primary">Iniciar sesi髇</button>
+                <button type="submit" class="btn btn-primary">Iniciar sesi贸n</button>
             </div>
         </div>
     </div>

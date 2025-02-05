@@ -112,5 +112,33 @@ namespace Proyecto2.Controllers
             ViewBag.Usuarios = new MultiSelectList(_context.Usuarios.Where(u => u.Rol == "Miembro").ToList(), "Id", "Nombre");
             return View(tarea);
         }
+
+        [HttpGet]
+        public ActionResult EditarEstado(int id)
+        {
+            var tarea = _context.Tareas.Find(id);
+            if (tarea == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(tarea);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditarEstado(int id, string estado)
+        {
+            var tarea = _context.Tareas.Find(id);
+            if (tarea == null)
+            {
+                return HttpNotFound();
+            }
+
+            tarea.Estado = estado == "on" ? "Completado" : "Pendiente";
+            _context.SaveChanges();
+
+            return RedirectToAction("Index", "Miembro");
+        }
     }
 }
