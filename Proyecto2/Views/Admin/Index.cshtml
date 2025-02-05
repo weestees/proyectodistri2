@@ -1,89 +1,54 @@
-@model Proyecto2.Models.Usuario
+@model Proyecto2.Models.AdminViewModel
 
 @{
-    ViewBag.Title = "Admin Dashboard";
+    ViewBag.Title = "Panel de Administracion";
 }
 
-<h2>Admin Dashboard</h2>
+<h2>Panel de Administracion</h2>
 
-<p>Bienvenido, @Model.Nombre.</p>
-
-<h3>Lista de Usuarios</h3>
+<p>Bienvenido, @Model.Nombre</p>
 
 <table class="table">
     <thead>
         <tr>
+            <th>ID</th>
             <th>Nombre</th>
             <th>Email</th>
-            <th>Rol</th>
             <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var usuario in ViewBag.Usuarios)
+        @foreach (var usuario in Model.Usuarios)
         {
             <tr>
+                <td>@usuario.Id</td>
                 <td>@usuario.Nombre</td>
                 <td>@usuario.Email</td>
-                <td>@usuario.Rol</td>
                 <td>
-                    <a href="@Url.Action("EditarUsuario", "Admin", new { id = usuario.Id })"
-                        class="btn btn-primary">Editar</a>
-                    <button class="btn btn-danger" onclick="confirmDelete(@usuario.Id)">Eliminar</button>
+                    <a href="@Url.Action("Edit", "UsuariosMvc", new { id = usuario.Id })" class="btn btn-warning">Editar</a>
+                    <a href="@Url.Action("Delete", "UsuariosMvc", new { id = usuario.Id })"
+                        class="btn btn-danger">Eliminar</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
 
-<a href="@Url.Action("CrearUsuario", "Admin")" class="btn btn-success">Crear Usuario</a>
-<a href="@Url.Action("Create", "Tareas")" class="btn btn-primary">Crear Tarea</a>
-
-<!-- Modal de confirmación -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminacion</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                ¿Esta seguro que desea eliminar este usuario?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteButton">Eliminar</button>
-            </div>
-        </div>
-    </div>
+<div>
+    <a href="@Url.Action("Crear", "UsuariosMvc")" class="btn btn-primary">Crear Usuario</a>
+    <a href="@Url.Action("Crear", "TareasMvc")" class="btn btn-primary">Crear Tarea</a>
+    <form id="logoutForm" method="post" action="@Url.Action("Logout", "Auth")">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-danger">Cerrar sesión</button>
+    </form>
 </div>
-
 @section Scripts {
-    <script>
-        function confirmDelete(userId) {
-            $('#confirmDeleteButton').attr('onclick', `deleteUser(${userId})`);
-            $('#confirmDeleteModal').modal('show');
-        }
-
-        function deleteUser(userId) {
-            $.ajax({
-                url: '@Url.Action("Delete", "Usuarios")',
-                type: 'POST',
-                data: {
-                    id: userId,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                },
-                success: function (result) {
-                    location.reload();
-                },
-                error: function (xhr, status, error) {
-                    alert('Error al eliminar el usuario.');
-                }
-            });
-        }
+    <script type="text/javascript">
+        document.getElementById("logoutButton").addEventListener("click", function () {
+            // Eliminar el token del almacenamiento local
+            localStorage.removeItem("token");
+            // Redirigir al usuario a la página de inicio de sesión
+            window.location.href = "/Auth/Login";
+        });
     </script>
-    @Html.AntiForgeryToken()
 }

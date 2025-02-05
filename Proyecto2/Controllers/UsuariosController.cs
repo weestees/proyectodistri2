@@ -1,122 +1,102 @@
-﻿using System.Data.Entity;
+﻿using System.Data.Entity.Infrastructure;
+using System.Data.Entity;
 using System.Linq;
-using System.Web.Mvc;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using System.Web.Http.Description;
 using Proyecto2.DAL;
 using Proyecto2.Models;
-using System.Data.Entity.Infrastructure;
 
-namespace Proyecto2.Controllers
+namespace Proyecto2.Controllers.Api
 {
-    public class UsuariosController : Controller
+    public class UsuariosApiController : ApiController
     {
         private GestorProyecto db = new GestorProyecto();
 
-        // Mostrar lista de usuarios
-        public ActionResult Index()
+        // GET: api/Usuarios
+        public IQueryable<Usuario> GetUsuarios()
         {
-            var usuarios = db.Usuarios.ToList();
-            return View(usuarios);
+            return db.Usuarios;
         }
 
-        // Crear nuevo usuario
-        [HttpGet]
-        public ActionResult Crear()
+        // GET: api/Usuarios/5
+        [ResponseType(typeof(Usuario))]
+        public IHttpActionResult GetUsuario(int id)
         {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult Crear(Usuario usuario)
-        {
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    db.Usuarios.Add(usuario);
-                    db.SaveChanges();
-                    return Json(new { success = true });
-                }
-                catch (DbUpdateException ex)
-                {
-                    return Json(new { success = false, message = "Error al crear el usuario: " + ex.InnerException?.Message });
-                }
-            }
-            return Json(new { success = false, message = "Error al crear el usuario. Verifique los datos ingresados." });
-        }
-
-        // Editar usuario
-        [HttpGet]
-        public ActionResult Editar(int id)
-        {
-            var usuario = db.Usuarios.Find(id);
+            Usuario usuario = db.Usuarios.Find(id);
             if (usuario == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
-            return View(usuario);
+
+            return Ok(usuario);
         }
 
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Editar([Bind(Include = "Id,Nombre,Email,Rol,Password")] Usuario usuario)
+        // PUT: api/Usuarios/5
+        [ResponseType(typeof(void))]
+        public IHttpActionResult PutUsuario(int id, Usuario usuario)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var usuarioExistente = db.Usuarios.AsNoTracking().FirstOrDefault(u => u.Id == usuario.Id);
-                if (usuarioExistente != null)
-                {
-                    // Si la contraseña no ha sido cambiada, mantener la contraseña actual
-                    if (string.IsNullOrEmpty(usuario.Password))
-                    {
-                        usuario.Password = usuarioExistente.Password;
-                    }
-
-                    // Asegurarse de que el campo Password no sea nulo
-                    if (usuario.Password == null)
-                    {
-                        ModelState.AddModelError("", "El campo Password no puede ser nulo.");
-                        return View(usuario);
-                    }
-
-                    db.Entry(usuario).State = EntityState.Modified;
-                    db.SaveChanges();
-                    return RedirectToAction("Index", "Admin");
-                }
+                return BadRequest(ModelState);
             }
-            return View(usuario);
-        }
 
-        // Eliminar usuario
-        [HttpGet]
-        public ActionResult Delete(int id)
-        {
-            var usuario = db.Usuarios.Find(id);
-            if (usuario == null)
+            if (id != usuario.Id)
             {
-                return HttpNotFound();
+                return BadRequest();
             }
-            return View(usuario);
-        }
 
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
-        {
+            db.Entry(usuario).State = EntityState.Modified;
+
             try
             {
-                var usuario = db.Usuarios.Find(id);
-                db.Usuarios.Remove(usuario);
                 db.SaveChanges();
-                return RedirectToAction("Index", "Admin");
             }
-            catch (DbUpdateException ex)
+            catch (DbUpdateConcurrencyException)
             {
-                ModelState.AddModelError("", "Error al eliminar el usuario: " + ex.InnerException?.Message);
-                var usuario = db.Usuarios.Find(id);
-                return View(usuario);
+                if (!UsuarioExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
             }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+        // POST: api/Usuarios
+        [ResponseType(typeof(Usuario))]
+        public IHttpActionResult PostUsuario(Usuario usuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            db.Usuarios.Add(usuario);
+            db.SaveChanges();
+
+            return CreatedAtRoute("DefaultApi", new { id = usuario.Id }, usuario);
+        }
+
+        // DELETE: api/Usuarios/5
+        [ResponseType(typeof(Usuario))]
+        public IHttpActionResult DeleteUsuario(int id)
+        {
+            Usuario usuario = db.Usuarios.Find(id);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+
+            db.Usuarios.Remove(usuario);
+            db.SaveChanges();
+
+            return Ok(usuario);
         }
 
         protected override void Dispose(bool disposing)
@@ -126,6 +106,11 @@ namespace Proyecto2.Controllers
                 db.Dispose();
             }
             base.Dispose(disposing);
+        }
+
+        private bool UsuarioExists(int id)
+        {
+            return db.Usuarios.Count(e => e.Id == id) > 0;
         }
     }
 }

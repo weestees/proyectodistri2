@@ -1,165 +1,119 @@
-﻿using Proyecto2.DAL;
-using Proyecto2.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
-using System.Web.Mvc;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using System.Web.Http.Description;
+using Proyecto2.DAL;
+using Proyecto2.Models;
 
 namespace Proyecto2.Controllers
 {
-    public class TareasController : Controller
+    public class TareasController : ApiController
     {
-        private readonly GestorProyecto _context;
+        private GestorProyecto db = new GestorProyecto();
 
-        public TareasController()
+        // GET: api/Tareas
+        public IQueryable<Tarea> GetTareas()
         {
-            _context = new GestorProyecto();
+            return db.Tareas;
         }
 
-        // GET: Tareas
-        public ActionResult Index()
+        // GET: api/Tareas/5
+        [ResponseType(typeof(Tarea))]
+        public IHttpActionResult GetTarea(int id)
         {
-            var tareas = _context.Tareas.ToList();
-            return View(tareas);
-        }
-
-        // GET: Tareas/Details/5
-        public ActionResult Details(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
-            }
-
-            var tarea = _context.Tareas
-                .FirstOrDefault(m => m.Id == id);
+            Tarea tarea = db.Tareas.Find(id);
             if (tarea == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
 
-            return View(tarea);
+            return Ok(tarea);
         }
 
-        // GET: Tareas/Create
-        public ActionResult Create()
+        // PUT: api/Tareas/5
+        [ResponseType(typeof(void))]
+        public IHttpActionResult PutTarea(int id, Tarea tarea)
         {
-            var usuarios = _context.Usuarios
-                     .Where(u => u.Rol == "Miembro") // Filtrar solo "Miembros"
-                     .Select(u => new { u.Id, u.Nombre }) // Seleccionar solo Id y Nombre
-                     .ToList();
-
-            ViewBag.Usuarios = new SelectList(usuarios, "Id", "Nombre");
-            return View();
-        }
-
-        // POST: Tareas/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,Titulo,Descripcion,UsuarioId")] Tarea tarea)
-        {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                tarea.Estado = "Pendiente"; // Estado siempre en "Pendiente"
-                _context.Tareas.Add(tarea);
-                _context.SaveChanges();
-                return RedirectToAction("Index", "Admin"); // Redirigir al índice del administrador
+                return BadRequest(ModelState);
             }
 
-            var usuarios = _context.Usuarios
-                     .Where(u => u.Rol == "Miembro") // Filtrar solo "Miembros"
-                     .Select(u => new { u.Id, u.Nombre }) // Seleccionar solo Id y Nombre
-                     .ToList();
-
-            ViewBag.Usuarios = new SelectList(usuarios, "Id", "Nombre");
-            return View(tarea);
-        }
-
-        // GET: Tareas/Edit/5
-        public ActionResult Edit(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
-            }
-
-            var tarea = _context.Tareas.Find(id);
-            if (tarea == null)
-            {
-                return HttpNotFound();
-            }
-
-            ViewBag.Usuarios = new SelectList(_context.Usuarios, "Id", "Nombre", tarea.UsuarioId);
-            return View(tarea);
-        }
-
-        // POST: Tareas/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, [Bind(Include = "Id,Titulo,Descripcion,Estado,UsuarioId")] Tarea tarea)
-        {
             if (id != tarea.Id)
             {
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
-            if (ModelState.IsValid)
+            db.Entry(tarea).State = EntityState.Modified;
+
+            try
             {
-                try
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!TareaExists(id))
                 {
-                    _context.Entry(tarea).State = System.Data.Entity.EntityState.Modified;
-                    _context.SaveChanges();
+                    return NotFound();
                 }
-                catch (System.Data.Entity.Infrastructure.DbUpdateConcurrencyException)
+                else
                 {
-                    if (!TareaExists(tarea.Id))
-                    {
-                        return HttpNotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
-                return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Usuarios = new SelectList(_context.Usuarios, "Id", "Nombre", tarea.UsuarioId);
-            return View(tarea);
+            return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // GET: Tareas/Delete/5
-        public ActionResult Delete(int? id)
+        // POST: api/Tareas
+        [ResponseType(typeof(Tarea))]
+        public IHttpActionResult PostTarea(Tarea tarea)
         {
-            if (id == null)
+            if (!ModelState.IsValid)
             {
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+                return BadRequest(ModelState);
             }
 
-            var tarea = _context.Tareas
-                .FirstOrDefault(m => m.Id == id);
+            db.Tareas.Add(tarea);
+            db.SaveChanges();
+
+            return CreatedAtRoute("DefaultApi", new { id = tarea.Id }, tarea);
+        }
+
+        // DELETE: api/Tareas/5
+        [ResponseType(typeof(Tarea))]
+        public IHttpActionResult DeleteTarea(int id)
+        {
+            Tarea tarea = db.Tareas.Find(id);
             if (tarea == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
 
-            return View(tarea);
+            db.Tareas.Remove(tarea);
+            db.SaveChanges();
+
+            return Ok(tarea);
         }
 
-        // POST: Tareas/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        protected override void Dispose(bool disposing)
         {
-            var tarea = _context.Tareas.Find(id);
-            _context.Tareas.Remove(tarea);
-            _context.SaveChanges();
-            return RedirectToAction(nameof(Index));
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
         }
 
         private bool TareaExists(int id)
         {
-            return _context.Tareas.Any(e => e.Id == id);
+            return db.Tareas.Count(e => e.Id == id) > 0;
         }
     }
 }

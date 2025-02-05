@@ -1,7 +1,35 @@
+@model Proyecto2.Models.MiembroViewModel
+
 @{
-    ViewBag.Title = "User Dashboard";
+    ViewBag.Title = "Tareas Asignadas";
 }
 
-<h2>User Dashboard</h2>
+<h2>Tareas Asignadas</h2>
 
-<p>Bienvenido, Miembro.</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Fecha de Creación</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tarea in Model.Tareas)
+        {
+            <tr>
+                <td>@tarea.Id</td>
+                <td>@tarea.Titulo</td>
+                <td>@tarea.Descripcion</td>
+                <td>
+                    <span style="color:@(tarea.Estado == "Pendiente" ? "red" : "green")">
+                        @tarea.Estado
+                    </span>
+                </td>
+                <td>@tarea.FechaCreacion</td>
+            </tr>
+        }
+    </tbody>
+</table>

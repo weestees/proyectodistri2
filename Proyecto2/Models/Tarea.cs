@@ -1,5 +1,6 @@
 ﻿using Proyecto2.Models;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,22 +12,19 @@ namespace Proyecto2.Models
         public int Id { get; set; }
 
         [Required]
-        [StringLength(200)]
+        [MaxLength(200)]
         public string Titulo { get; set; }
 
         public string Descripcion { get; set; }
 
         [Required]
-        [StringLength(50)]
+        [MaxLength(50)]
         public string Estado { get; set; } // "Pendiente", "En Progreso", "Completada"
 
         [Required]
-        public DateTime FechaCreacion { get; set; } = DateTime.Now;
+        public DateTime FechaCreacion { get; set; }
 
-        // Relación con Usuario
-        [ForeignKey("Usuario")]
-        public int UsuarioId { get; set; }
-
-        public virtual Usuario Usuario { get; set; }
+        // Relación muchos a muchos con Usuario a través de UsuarioTarea
+        public virtual ICollection<UsuarioTarea> UsuarioTareas { get; set; }
     }
 }

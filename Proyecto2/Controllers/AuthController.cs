@@ -1,87 +1,123 @@
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Claims;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using Proyecto2.DAL;
+using System.Web.Security;
+using Newtonsoft.Json;
 using Proyecto2.Models;
 
 namespace Proyecto2.Controllers
 {
     public class AuthController : Controller
     {
-        private GestorProyecto db = new GestorProyecto();
-        private readonly string _jwtKey = "ClaveSuperSecreta1234567890!@#$%^"; // 32 caracteres
+        // Ajusta la URL de la API (el puerto es 44367)
+        private static readonly string ApiUrl = "https://localhost:44367/api/autenticacion/login";
 
-        [HttpPost]
-        public ActionResult Login(LoginViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var user = AuthenticateUser(model.Email, model.Password);
-                if (user != null)
-                {
-                    var token = GenerateToken(user);
-                    // Autenticación exitosa, redirigir según el rol del usuario
-                    if (user.Rol == "Administrador")
-                    {
-                        return RedirectToAction("Index", "Admin");
-                    }
-                    else if (user.Rol == "Miembro")
-                    {
-                        return RedirectToAction("Index", "User");
-                    }
-                }
-                ModelState.AddModelError("", "Email o contraseña incorrectos.");
-            }
-            return View(model);
-        }
-
-        [HttpGet]
+        // GET: Auth/Login
         public ActionResult Login()
         {
+            FormsAuthentication.SignOut();
+            Session.Clear();
             return View();
         }
 
-        private string GenerateToken(Usuario user)
+        // POST: Auth/Login
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
         {
-            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
-            var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+            if (!ModelState.IsValid)
+                return View(model);
 
-            var tokeOptions = new JwtSecurityToken(
-                issuer: "tu_issuer",
-                audience: "tu_audience",
-                claims: new List<Claim>
-                {
-                        new Claim(ClaimTypes.Name, user.Nombre),
-                        new Claim(ClaimTypes.Role, user.Rol)
-                },
-                expires: DateTime.Now.AddMinutes(30),
-                signingCredentials: signinCredentials
-            );
-
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
-            return tokenString;
-        }
-
-        private Usuario AuthenticateUser(string email, string password)
-        {
-            var user = db.Usuarios.FirstOrDefault(u => u.Email == email);
-            if (user != null && VerifyPassword(password, user.Password))
+            using (var client = new HttpClient())
             {
-                return user;
+                var jsonContent = JsonConvert.SerializeObject(model);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                // Llamada a la API para validar las credenciales y obtener el token
+                HttpResponseMessage response = await client.PostAsync(ApiUrl, content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseData = await response.Content.ReadAsStringAsync();
+
+                    // Verificar si la respuesta es JSON
+                    if (response.Content.Headers.ContentType.MediaType == "application/json")
+                    {
+                        // Se deserializa la respuesta en un objeto LoginResponse
+                        var loginResponse = JsonConvert.DeserializeObject<LoginResponse>(responseData);
+                        if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.Token))
+                        {
+                            // Decodificar el token JWT para obtener el rol
+                            var handler = new JwtSecurityTokenHandler();
+                            var jwtToken = handler.ReadToken(loginResponse.Token) as JwtSecurityToken;
+                            string role = jwtToken?.Claims.FirstOrDefault(c => c.Type == "role")?.Value;
+
+                            // Crear un ticket de autenticación de formularios que incluya el rol en los UserData
+                            var authTicket = new FormsAuthenticationTicket(
+                                1,                                // Versión
+                                model.Email,                      // Nombre de usuario
+                                DateTime.Now,                     // Fecha de emisión
+                                DateTime.Now.AddMinutes(30),      // Fecha de expiración
+                                false,                            // Persistencia (recordar o no)
+                                role                              // UserData: en este caso, el rol
+                            );
+
+                            // Encriptar el ticket y crear la cookie
+                            string encryptedTicket = FormsAuthentication.Encrypt(authTicket);
+                            var authCookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket)
+                            {
+                                HttpOnly = true,
+                                Expires = authTicket.Expiration
+                            };
+                            Response.Cookies.Add(authCookie);
+
+                            // También puedes almacenar el token en sesión si lo necesitas
+                            Session["Token"] = loginResponse.Token;
+                            Session["Role"] = role;
+
+                            // Redirigir según el rol obtenido
+                            if (role.Equals("Administrador", StringComparison.OrdinalIgnoreCase))
+                            {
+                                return RedirectToAction("Index", "Admin");
+                            }
+                            else if (role.Equals("Miembro", StringComparison.OrdinalIgnoreCase))
+                            {
+                                return RedirectToAction("Index", "Miembro");
+                            }
+                            else
+                            {
+                                ModelState.AddModelError("", "Rol no reconocido.");
+                                return View(model);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "Respuesta inesperada del servidor.");
+                        return View(model);
+                    }
+                }
+
+                ModelState.AddModelError("", "Credenciales incorrectas.");
+                return View(model);
             }
-            return null;
         }
 
-        private bool VerifyPassword(string enteredPassword, string storedPassword)
+        // Acción para cerrar sesión
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Logout()
         {
-            // Implementa la lógica de verificación de contraseña aquí
-            // Por ejemplo, si las contraseñas están encriptadas, desencripta y compara
-            return enteredPassword == storedPassword; // Cambia esto según sea necesario
+            FormsAuthentication.SignOut();
+            Session.Clear();
+            // Aquí puedes implementar la lógica para invalidar el token si es necesario
+            // Por ejemplo, puedes mantener una lista de tokens inválidos en la base de datos
+            return RedirectToAction("Login");
         }
     }
 }
