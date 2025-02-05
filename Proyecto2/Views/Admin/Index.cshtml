@@ -37,5 +37,18 @@
 <div>
     <a href="@Url.Action("Crear", "UsuariosMvc")" class="btn btn-primary">Crear Usuario</a>
     <a href="@Url.Action("Crear", "TareasMvc")" class="btn btn-primary">Crear Tarea</a>
+    <form id="logoutForm" method="post" action="@Url.Action("Logout", "Auth")">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-danger">Cerrar sesión</button>
+    </form>
 </div>
-  
+@section Scripts {
+    <script type="text/javascript">
+        document.getElementById("logoutButton").addEventListener("click", function () {
+            // Eliminar el token del almacenamiento local
+            localStorage.removeItem("token");
+            // Redirigir al usuario a la página de inicio de sesión
+            window.location.href = "/Auth/Login";
+        });
+    </script>
+}

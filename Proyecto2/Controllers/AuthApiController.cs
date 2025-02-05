@@ -8,6 +8,8 @@ using System.Web.Http;
 using System.Linq;
 using Proyecto2.DAL;
 using System.Web.UI.WebControls;
+using System.Web.Helpers;
+using System.Net.Http;
 
 namespace Proyecto2.Controllers
 {
@@ -15,8 +17,6 @@ namespace Proyecto2.Controllers
     public class AuthApiController : ApiController
     {
         private GestorProyecto db = new GestorProyecto();
-
-
 
         [HttpPost]
         [Route("login")]
@@ -96,6 +96,19 @@ namespace Proyecto2.Controllers
             }
 
             return Redirect(returnUrl);
+        }
+
+        [HttpPost]
+        [Route("logout")]
+        public IHttpActionResult Logout()
+        {
+            // Aquí puedes implementar la lógica para invalidar el token si es necesario
+            // Por ejemplo, puedes mantener una lista de tokens inválidos en la base de datos
+
+            // Redirigir al usuario a la página de inicio de sesión
+            var response = Request.CreateResponse(System.Net.HttpStatusCode.Redirect);
+            response.Headers.Location = new Uri("/Auth/Login", UriKind.Relative);
+            return ResponseMessage(response);
         }
     }
 

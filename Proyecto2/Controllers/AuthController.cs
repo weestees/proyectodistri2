@@ -109,10 +109,14 @@ namespace Proyecto2.Controllers
         }
 
         // Acción para cerrar sesión
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Logout()
         {
             FormsAuthentication.SignOut();
             Session.Clear();
+            // Aquí puedes implementar la lógica para invalidar el token si es necesario
+            // Por ejemplo, puedes mantener una lista de tokens inválidos en la base de datos
             return RedirectToAction("Login");
         }
     }
